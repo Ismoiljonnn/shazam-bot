@@ -3,7 +3,7 @@ services:
     name: mediabot
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: gunicorn --worker-class=gthread --threads=4 --timeout=120 --bind=0.0.0.0:$PORT app:app
     envVars:
       - key: BOT_TOKEN
         sync: false
@@ -17,6 +17,4 @@ services:
         value: "50"
       - key: DOWNLOAD_TIMEOUT
         value: "300"
-      - key: PORT
-        value: "10000"
-    healthCheckPath: /admin/login
+    healthCheckPath: /
