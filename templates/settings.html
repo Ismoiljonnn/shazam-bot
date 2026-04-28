@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+{% block title %}Sozlamalar{% endblock %}
+{% block content %}
+
+{% if message %}
+<div style="background:rgba(0,200,122,0.1);border:1px solid rgba(0,200,122,0.3);color:var(--success);padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+    ✅ {{ message }}
+</div>
+{% endif %}
+
+<div class="grid-2">
+    <div>
+        <div class="section-header">
+            <h2 class="section-title">⚙️ Bot sozlamalari</h2>
+        </div>
+        <div class="form-card">
+            <form method="POST">
+                <div class="form-group">
+                    <label class="form-label">Maksimal fayl hajmi (MB)</label>
+                    <input type="number" name="max_file_size" value="{{ config.max_file_size }}" class="form-input" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Yuklab olish vaqt chegarasi (soniya)</label>
+                    <input type="number" name="download_timeout" value="{{ config.download_timeout }}" class="form-input" min="30" max="600">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Xush kelibsiz xabari</label>
+                    <textarea name="welcome_msg" class="form-input" style="min-height:160px;">{{ config.welcome_msg }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Saqlash</button>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <div class="section-header">
+            <h2 class="section-title">🔐 Admin parolini o'zgartirish</h2>
+        </div>
+        <div class="form-card">
+            <form method="POST" action="/admin/settings/change-password">
+                <div class="form-group">
+                    <label class="form-label">Joriy parol</label>
+                    <input type="password" name="current_password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Yangi parol</label>
+                    <input type="password" name="new_password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Yangi parolni tasdiqlang</label>
+                    <input type="password" name="confirm_password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary">🔐 O'zgartirish</button>
+            </form>
+        </div>
+
+        <div class="section-header" style="margin-top:24px;">
+            <h2 class="section-title">ℹ️ Tizim ma'lumotlari</h2>
+        </div>
+        <div class="form-card">
+            <table style="width:100%;border-collapse:collapse;">
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">Bot versiyasi</td>
+                    <td class="mono" style="font-size:13px;">1.0.0</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">Python versiyasi</td>
+                    <td class="mono" style="font-size:13px;">{{ python_version }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">yt-dlp versiyasi</td>
+                    <td class="mono" style="font-size:13px;">{{ ytdlp_version }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">Ma'lumotlar bazasi</td>
+                    <td class="mono" style="font-size:13px;">SQLite</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

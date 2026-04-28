@@ -1,0 +1,174 @@
+{% extends "layout.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Stats cards -->
+<div class="stats-grid">
+    <div class="stat-card purple">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ stats.total_users }}</div>
+        <div class="stat-label">Jami foydalanuvchilar</div>
+        <div class="stat-change">+{{ stats.new_users_today }} bugun</div>
+    </div>
+    <div class="stat-card cyan">
+        <div class="stat-icon">📥</div>
+        <div class="stat-value">{{ stats.total_downloads }}</div>
+        <div class="stat-label">Jami yuklamalar</div>
+        <div class="stat-change">+{{ stats.downloads_today }} bugun</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value">{{ stats.success_rate }}%</div>
+        <div class="stat-label">Muvaffaqiyat darajasi</div>
+        <div class="stat-change">{{ stats.successful }} muvaffaqiyatli</div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-icon">❌</div>
+        <div class="stat-value">{{ stats.failed_downloads }}</div>
+        <div class="stat-label">Muvaffaqiyatsiz</div>
+        <div class="stat-change">{{ stats.banned_users }} ban qilingan</div>
+    </div>
+</div>
+
+<!-- Recent activity -->
+<div class="grid-2">
+    <!-- Recent downloads -->
+    <div>
+        <div class="section-header">
+            <h2 class="section-title">🕐 So'nggi yuklamalar</h2>
+            <a href="/admin/downloads" class="section-action">Barchasini ko'rish</a>
+        </div>
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Foydalanuvchi</th>
+                        <th>Platforma</th>
+                        <th>Holat</th>
+                        <th>Vaqt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dl in recent_downloads %}
+                    <tr>
+                        <td class="mono">@{{ dl.user.username or dl.user.first_name }}</td>
+                        <td>
+                            {% if dl.platform == 'YouTube' %}🔴
+                            {% elif dl.platform == 'Instagram' %}📸
+                            {% elif dl.platform == 'TikTok' %}🎵
+                            {% else %}🌐{% endif %}
+                            {{ dl.platform }}
+                        </td>
+                        <td>
+                            {% if dl.status == 'success' %}
+                            <span class="badge badge-success">✓ OK</span>
+                            {% else %}
+                            <span class="badge badge-error">✗ Xato</span>
+                            {% endif %}
+                        </td>
+                        <td style="color:var(--text-muted);font-size:12px;">
+                            {{ dl.created_at.strftime('%d.%m %H:%M') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not recent_downloads %}
+                    <tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Hali yuklamalar yo'q</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top users -->
+    <div>
+        <div class="section-header">
+            <h2 class="section-title">🏆 Top foydalanuvchilar</h2>
+            <a href="/admin/users" class="section-action">Barchasini ko'rish</a>
+        </div>
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Foydalanuvchi</th>
+                        <th>Yuklamalar</th>
+                        <th>Holat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in top_users %}
+                    <tr>
+                        <td style="color:var(--text-muted);">{{ loop.index }}</td>
+                        <td>
+                            <div style="font-weight:500;">{{ user.first_name }}</div>
+                            <div class="mono" style="color:var(--text-muted);">@{{ user.username or '—' }}</div>
+                        </td>
+                        <td style="font-family:'JetBrains Mono';font-weight:600;color:var(--accent);">
+                            {{ user.total_downloads }}
+                        </td>
+                        <td>
+                            {% if user.is_banned %}
+                            <span class="badge badge-error">Ban</span>
+                            {% else %}
+                            <span class="badge badge-success">Faol</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not top_users %}
+                    <tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Hali foydalanuvchilar yo'q</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Platform stats -->
+<div class="section-header">
+    <h2 class="section-title">📱 Platformalar bo'yicha statistika</h2>
+</div>
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Platforma</th>
+                <th>Jami so'rovlar</th>
+                <th>Muvaffaqiyatli</th>
+                <th>Muvaffaqiyatsiz</th>
+                <th>Ulushi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in platform_stats %}
+            <tr>
+                <td>
+                    {% if p.platform == 'YouTube' %}🔴
+                    {% elif p.platform == 'Instagram' %}📸
+                    {% elif p.platform == 'TikTok' %}🎵
+                    {% elif p.platform == 'Twitter/X' %}🐦
+                    {% elif p.platform == 'Facebook' %}📘
+                    {% else %}🌐{% endif %}
+                    <strong>{{ p.platform }}</strong>
+                </td>
+                <td class="mono">{{ p.total }}</td>
+                <td><span class="badge badge-success">{{ p.success }}</span></td>
+                <td><span class="badge badge-error">{{ p.failed }}</span></td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;height:6px;background:var(--surface2);border-radius:3px;max-width:100px;">
+                            <div style="width:{{ p.percent }}%;height:100%;background:var(--accent);border-radius:3px;"></div>
+                        </div>
+                        <span style="font-size:12px;color:var(--text-muted);">{{ p.percent }}%</span>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not platform_stats %}
+            <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Hali ma'lumot yo'q</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

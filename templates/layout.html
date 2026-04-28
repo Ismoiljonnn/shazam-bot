@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block body %}
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-mark">
+            <div class="logo-icon">🎬</div>
+            <div>
+                <div class="logo-text">MediaBot</div>
+                <div class="logo-sub">Admin Panel</div>
+            </div>
+        </div>
+    </div>
+    <div class="nav">
+        <div class="nav-section">
+            <div class="nav-label">Asosiy</div>
+            <a href="/admin" class="nav-item {% if active=='dashboard' %}active{% endif %}">
+                <span class="icon">📊</span> Dashboard
+            </a>
+            <a href="/admin/users" class="nav-item {% if active=='users' %}active{% endif %}">
+                <span class="icon">👥</span> Foydalanuvchilar
+            </a>
+            <a href="/admin/downloads" class="nav-item {% if active=='downloads' %}active{% endif %}">
+                <span class="icon">📥</span> Yuklamalar
+            </a>
+        </div>
+        <div class="nav-section">
+            <div class="nav-label">Boshqaruv</div>
+            <a href="/admin/broadcast" class="nav-item {% if active=='broadcast' %}active{% endif %}">
+                <span class="icon">📢</span> Xabar yuborish
+            </a>
+            <a href="/admin/settings" class="nav-item {% if active=='settings' %}active{% endif %}">
+                <span class="icon">⚙️</span> Sozlamalar
+            </a>
+        </div>
+    </div>
+    <div class="sidebar-footer">
+        <a href="/admin/logout" class="logout-btn">
+            <span>🚪</span> Chiqish
+        </a>
+    </div>
+</nav>
+
+<!-- Main content -->
+<main class="main">
+    <header class="topbar">
+        <h1 class="page-title">{% block title %}Dashboard{% endblock %}</h1>
+        <div class="topbar-right">
+            <div class="bot-status">
+                <div class="status-dot"></div>
+                <span>Bot ishlayapti</span>
+            </div>
+            <span style="color:var(--text-muted);font-size:14px;">👤 admin</span>
+        </div>
+    </header>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+{% endblock %}

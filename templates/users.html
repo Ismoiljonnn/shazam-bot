@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% block title %}Foydalanuvchilar{% endblock %}
+{% block content %}
+
+<div class="section-header">
+    <h2 class="section-title">👥 Barcha foydalanuvchilar ({{ users.total }})</h2>
+    <div style="display:flex;gap:12px;align-items:center;">
+        <form method="GET" style="display:flex;gap:8px;">
+            <input type="text" name="search" value="{{ search }}" placeholder="Qidirish..." 
+                   class="form-input" style="width:200px;padding:7px 12px;">
+            <button type="submit" class="btn btn-primary">Qidirish</button>
+        </form>
+    </div>
+</div>
+
+{% if message %}
+<div style="background:rgba(0,200,122,0.1);border:1px solid rgba(0,200,122,0.3);color:var(--success);padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+    ✅ {{ message }}
+</div>
+{% endif %}
+
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Telegram ID</th>
+                <th>Foydalanuvchi</th>
+                <th>Yuklamalar</th>
+                <th>So'nggi faollik</th>
+                <th>Holat</th>
+                <th>Amal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users.items %}
+            <tr>
+                <td class="mono" style="color:var(--text-muted);">{{ user.id }}</td>
+                <td class="mono">{{ user.telegram_id }}</td>
+                <td>
+                    <div style="font-weight:500;">{{ user.first_name }} {{ user.last_name or '' }}</div>
+                    <div class="mono" style="color:var(--text-muted);font-size:11px;">@{{ user.username or '—' }}</div>
+                </td>
+                <td style="font-family:'JetBrains Mono';font-weight:600;color:var(--accent);">
+                    {{ user.total_downloads }}
+                </td>
+                <td style="color:var(--text-muted);font-size:12px;">
+                    {{ user.last_active.strftime('%d.%m.%Y %H:%M') if user.last_active else '—' }}
+                </td>
+                <td>
+                    {% if user.is_banned %}
+                    <span class="badge badge-error">🚫 Ban</span>
+                    {% else %}
+                    <span class="badge badge-success">✓ Faol</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-btns">
+                        <a href="/admin/users/{{ user.id }}/toggle-ban" 
+                           class="btn {% if user.is_banned %}btn-primary{% else %}btn-danger{% endif %}"
+                           style="padding:5px 12px;font-size:12px;"
+                           onclick="return confirm('Ishonchingiz komilmi?')">
+                            {% if user.is_banned %}Ban olib tashlash{% else %}Ban{% endif %}
+                        </a>
+                        <a href="/admin/users/{{ user.id }}" class="section-action">Ko'rish</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if users.pages > 1 %}
+<div style="display:flex;gap:8px;justify-content:center;margin-top:20px;">
+    {% for page in users.iter_pages() %}
+        {% if page %}
+        <a href="?page={{ page }}{% if search %}&search={{ search }}{% endif %}" 
+           class="section-action {% if page == users.page %}btn-primary{% endif %}"
+           style="padding:6px 12px;">{{ page }}</a>
+        {% else %}
+        <span style="padding:6px 8px;color:var(--text-muted);">...</span>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

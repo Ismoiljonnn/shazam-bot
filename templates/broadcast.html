@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block title %}Xabar yuborish{% endblock %}
+{% block content %}
+
+{% if message %}
+<div style="background:rgba(0,200,122,0.1);border:1px solid rgba(0,200,122,0.3);color:var(--success);padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+    ✅ {{ message }}
+</div>
+{% endif %}
+
+<div class="grid-2">
+    <div>
+        <div class="section-header">
+            <h2 class="section-title">📢 Yangi xabar</h2>
+        </div>
+        <div class="form-card">
+            <form method="POST" action="/admin/broadcast/send">
+                <div class="form-group">
+                    <label class="form-label">Xabar matni (Markdown qo'llab-quvvatlanadi)</label>
+                    <textarea name="message" class="form-input" placeholder="*Muhim xabar!*&#10;&#10;Botimizda yangi funksiyalar qo'shildi..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kimga yuborish</label>
+                    <select name="target" class="form-input">
+                        <option value="all">Barcha foydalanuvchilar</option>
+                        <option value="active">Faol foydalanuvchilar (oxirgi 7 kun)</option>
+                        <option value="unbanned">Ban qilinmaganlar</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;background:var(--surface2);padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+                    <span style="font-size:20px;">ℹ️</span>
+                    <div style="font-size:13px;color:var(--text-muted);">
+                        Jami foydalanuvchilar: <strong style="color:var(--text);">{{ total_users }}</strong><br>
+                        Xabar yuborishda biroz vaqt ketishi mumkin.
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" 
+                        onclick="return confirm('{{ total_users }} foydalanuvchiga xabar yuboriladi. Davom etasizmi?')">
+                    📢 Xabar yuborish
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <div class="section-header">
+            <h2 class="section-title">📋 Oldingi xabarlar</h2>
+        </div>
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Xabar</th>
+                        <th>Yuborildi</th>
+                        <th>Vaqt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bc in broadcasts %}
+                    <tr>
+                        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;">
+                            {{ bc.message[:60] }}{% if bc.message|length > 60 %}...{% endif %}
+                        </td>
+                        <td class="mono" style="color:var(--accent);">{{ bc.sent_count }}</td>
+                        <td style="color:var(--text-muted);font-size:12px;">
+                            {{ bc.created_at.strftime('%d.%m %H:%M') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not broadcasts %}
+                    <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Hali xabarlar yo'q</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

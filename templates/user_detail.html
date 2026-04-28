@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block title %}Foydalanuvchi: {{ user.first_name }}{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:20px;">
+    <a href="/admin/users" style="color:var(--text-muted);text-decoration:none;font-size:14px;">← Orqaga</a>
+</div>
+
+<div class="grid-2">
+    <div>
+        <div class="form-card">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+                <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;">
+                    {{ user.first_name[0] if user.first_name else '?' }}
+                </div>
+                <div>
+                    <div style="font-size:20px;font-weight:600;">{{ user.first_name }} {{ user.last_name or '' }}</div>
+                    <div class="mono" style="color:var(--text-muted);">@{{ user.username or 'username yo\'q' }}</div>
+                </div>
+            </div>
+            <table style="width:100%;border-collapse:collapse;">
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">Telegram ID</td>
+                    <td class="mono">{{ user.telegram_id }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">Qo'shilgan</td>
+                    <td>{{ user.joined_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">So'nggi faollik</td>
+                    <td>{{ user.last_active.strftime('%d.%m.%Y %H:%M') if user.last_active else '—' }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">Jami yuklamalar</td>
+                    <td style="font-family:'JetBrains Mono';font-weight:700;color:var(--accent);">{{ user.total_downloads }}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:var(--text-muted);font-size:13px;">Holat</td>
+                    <td>
+                        {% if user.is_banned %}
+                        <span class="badge badge-error">🚫 Ban qilingan</span>
+                        {% else %}
+                        <span class="badge badge-success">✓ Faol</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            <div style="margin-top:20px;">
+                <a href="/admin/users/{{ user.id }}/toggle-ban" 
+                   class="btn {% if user.is_banned %}btn-primary{% else %}btn-danger{% endif %}"
+                   onclick="return confirm('Ishonchingiz komilmi?')">
+                    {% if user.is_banned %}🔓 Banni olib tashlash{% else %}🚫 Ban qilish{% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="section-header">
+            <h2 class="section-title">📥 So'nggi yuklamalar</h2>
+        </div>
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Platforma</th>
+                        <th>Tur</th>
+                        <th>Holat</th>
+                        <th>Vaqt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dl in downloads %}
+                    <tr>
+                        <td>{{ dl.platform or '—' }}</td>
+                        <td>{% if dl.file_type == 'video' %}🎬{% else %}🎵{% endif %} {{ dl.file_type }}</td>
+                        <td>
+                            {% if dl.status == 'success' %}<span class="badge badge-success">OK</span>
+                            {% else %}<span class="badge badge-error">Xato</span>{% endif %}
+                        </td>
+                        <td style="font-size:12px;color:var(--text-muted);">{{ dl.created_at.strftime('%d.%m %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not downloads %}
+                    <tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Hali yuklamalar yo'q</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

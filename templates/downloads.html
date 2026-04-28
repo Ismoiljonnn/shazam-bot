@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+{% block title %}Yuklamalar{% endblock %}
+{% block content %}
+
+<div class="section-header">
+    <h2 class="section-title">📥 Barcha yuklamalar ({{ downloads.total }})</h2>
+    <form method="GET" style="display:flex;gap:8px;align-items:center;">
+        <select name="status" class="form-input" style="width:140px;padding:7px 12px;">
+            <option value="">Barchasi</option>
+            <option value="success" {% if status_filter=='success' %}selected{% endif %}>Muvaffaqiyatli</option>
+            <option value="failed" {% if status_filter=='failed' %}selected{% endif %}>Muvaffaqiyatsiz</option>
+        </select>
+        <select name="platform" class="form-input" style="width:140px;padding:7px 12px;">
+            <option value="">Barcha platformalar</option>
+            <option value="YouTube">YouTube</option>
+            <option value="Instagram">Instagram</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Twitter/X">Twitter/X</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+</div>
+
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Foydalanuvchi</th>
+                <th>Platforma</th>
+                <th>Sarlavha</th>
+                <th>Tur</th>
+                <th>Holat</th>
+                <th>Vaqt</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dl in downloads.items %}
+            <tr>
+                <td class="mono" style="color:var(--text-muted);">{{ dl.id }}</td>
+                <td>
+                    {% if dl.user %}
+                    <div style="font-size:13px;">{{ dl.user.first_name }}</div>
+                    <div class="mono" style="color:var(--text-muted);font-size:11px;">@{{ dl.user.username or '—' }}</div>
+                    {% else %}
+                    <span style="color:var(--text-muted);">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if dl.platform == 'YouTube' %}🔴
+                    {% elif dl.platform == 'Instagram' %}📸
+                    {% elif dl.platform == 'TikTok' %}🎵
+                    {% elif dl.platform == 'Twitter/X' %}🐦
+                    {% else %}🌐{% endif %}
+                    {{ dl.platform or '—' }}
+                </td>
+                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;">
+                    <a href="{{ dl.url }}" target="_blank" style="color:var(--accent2);text-decoration:none;" title="{{ dl.title }}">
+                        {{ (dl.title or dl.url)[:60] }}{% if (dl.title or dl.url)|length > 60 %}...{% endif %}
+                    </a>
+                </td>
+                <td>
+                    {% if dl.file_type == 'video' %}<span class="badge badge-info">🎬 Video</span>
+                    {% elif dl.file_type == 'audio' %}<span class="badge badge-warning">🎵 Audio</span>
+                    {% else %}<span class="badge">{{ dl.file_type }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if dl.status == 'success' %}<span class="badge badge-success">✓ OK</span>
+                    {% elif dl.status == 'failed' %}<span class="badge badge-error" title="{{ dl.error_msg }}">✗ Xato</span>
+                    {% else %}<span class="badge badge-warning">⏳</span>
+                    {% endif %}
+                </td>
+                <td style="color:var(--text-muted);font-size:12px;">
+                    {{ dl.created_at.strftime('%d.%m %H:%M') }}
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not downloads.items %}
+            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Hali yuklamalar yo'q</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if downloads.pages > 1 %}
+<div style="display:flex;gap:8px;justify-content:center;margin-top:20px;">
+    {% for page in downloads.iter_pages() %}
+        {% if page %}
+        <a href="?page={{ page }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if platform_filter %}&platform={{ platform_filter }}{% endif %}" 
+           class="section-action {% if page == downloads.page %}btn-primary{% endif %}"
+           style="padding:6px 12px;">{{ page }}</a>
+        {% else %}
+        <span style="padding:6px 8px;color:var(--text-muted);">...</span>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
