@@ -517,47 +517,66 @@ async def media_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             file_path = os.path.join(tmpdir, f"audio.{media.file_unique_id}")
             await file.download_to_drive(file_path)
             
-            # Shazam orqali aniqlash
+# Faylni yuklash
+            file = await context.bot.get_file(media.file_id)
+            file_path = os.path.join(tmpdir, f"audio.{media.file_unique_id}")
+            await file.download_to_drive(file_path)
+            
+            # AudD API orqali musiqa aniqlash (bepul, shazamio talab qilmaydi)
             try:
-                from shazamio import Shazam
-                shazam = Shazam()
-                out = await shazam.recognize(file_path)
+                import base64
                 
-                if out and 'track' in out:
-                    track = out['track']
+                with open(file_path, 'rb') as f:
+                    audio_data = base64.b64encode(f.read()).decode('utf-8')
+                
+                async with aiohttp.ClientSession() as session_http:
+                    # AudD bepul API (ro'yxatdan o'tmasdan ishlaydi, lekin cheklangan)
+                    form_data = aiohttp.FormData()
+                    form_data.add_field('audio', audio_data)
+                    form_data.add_field('return', 'apple_music,spotify')
+                    
+                    async with session_http.post(
+                        'https://api.audd.io/',
+                        data=form_data,
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as resp:
+                        result = await resp.json()
+                
+                if result.get('status') == 'success' and result.get('result'):
+                    track = result['result']
                     song_title = track.get('title', 'Noma\'lum')
-                    artist = track.get('subtitle', 'Noma\'lum')
-                    
-                    # Apple Music havola
-                    apple_url = ''
-                    share = track.get('share', {})
-                    if share:
-                        apple_url = share.get('href', '')
-                    
-                    # Cover rasm
-                                        # Cover image
-                    images = track.get('images', {})
-                    cover_url = images.get('coverart', '')
+                    artist = track.get('artist', 'Noma\'lum')
+                    album = track.get('album', '')
+                    release_date = track.get('release_date', '')
                     
                     result_text = (
                         f"🎵 *Musiqa topildi!*\n\n"
                         f"🎶 Nomi: **{song_title}**\n"
                         f"👨‍🎤 Artist: **{artist}**\n"
                     )
+                    if album:
+                        result_text += f"💿 Albom: {album}\n"
+                    if release_date:
+                        result_text += f"📅 Sana: {release_date[:4]}\n"
                     
-                    if apple_url:
-                        result_text += f"\n🍎 [Apple Music da tinglash]({apple_url})"
-                    
-                    # YouTube da qidirish havolasi
                     yt_search = f"https://www.youtube.com/results?search_query={song_title}+{artist}".replace(' ', '+')
                     spotify_search = f"https://open.spotify.com/search/{song_title} {artist}".replace(' ', '%20')
                     
+                    # Spotify havolasi
+                    spotify_url = ''
+                    if track.get('spotify'):
+                        spotify_url = track['spotify'].get('external_urls', {}).get('spotify', '')
+                    
                     keyboard = [
                         [InlineKeyboardButton("🔴 YouTube", url=yt_search),
-                         InlineKeyboardButton("🟢 Spotify", url=spotify_search)],
+                         InlineKeyboardButton("🟢 Spotify", url=spotify_url or spotify_search)],
                     ]
-                    if apple_url:
-                        keyboard.append([InlineKeyboardButton("🍎 Apple Music", url=apple_url)])
+                    
+                    # Apple Music
+                    if track.get('apple_music'):
+                        apple_url = track['apple_music'].get('url', '')
+                        if apple_url:
+                            keyboard.append([InlineKeyboardButton("🍎 Apple Music", url=apple_url)])
                     
                     await status_msg.edit_text(
                         result_text,
@@ -571,11 +590,11 @@ async def media_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "Yoki ovoz sifati past bo'lishi mumkin.",
                         parse_mode=ParseMode.MARKDOWN
                     )
-            except ImportError:
-                # Shazam ishlamasa, oddiy xabar
+            except Exception as music_err:
+                logger.error(f"Music detect error: {music_err}")
                 await status_msg.edit_text(
-                    "⚠️ Musiqa aniqlash xizmati hozircha mavjud emas.\n"
-                    "Kuting, tez orada ishga tushiriladi.",
+                    "❌ *Musiqa aniqlashda xato yuz berdi.*\n\n"
+                    "Iltimos qayta urinib ko'ring.",
                     parse_mode=ParseMode.MARKDOWN
                 )
                 
