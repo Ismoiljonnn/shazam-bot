@@ -308,21 +308,55 @@ def run_bot():
 
 # ======================== MAIN ========================
 
-if __name__ == '__main__':
-    # DB boshlash
+# if __name__ == '__main__':
+#     # DB boshlash
+#     init_db()
+#     logger.info("Database tayyor")
+
+#     # Botni background da ishga tushirish (faqat BOT_TOKEN bo'lsa)
+#     bot_token = os.getenv('BOT_TOKEN', '')
+#     if bot_token and bot_token != 'your_bot_token_here':
+#         bot_thread = threading.Thread(target=run_bot, daemon=True)
+#         bot_thread.start()
+#         logger.info("Bot thread ishga tushirildi")
+#     else:
+#         logger.warning("BOT_TOKEN topilmadi — bot ishlamaydi! .env ga qo'shing.")
+
+#     # Flask server
+#     port = int(os.getenv('PORT', 5000))
+#     logger.info(f"Flask server port {port} da ishga tushmoqda...")
+#     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+
+app = Flask(__name__)
+logger = logging.getLogger(__name__)
+
+# --- MODUL DARAJASIDA ---
+# Gunicorn import qilishi bilan bular ishga tushadi
+
+# 1. DB boshlash
+try:
     init_db()
     logger.info("Database tayyor")
+except Exception as e:
+    logger.error(f"DB error: {e}")
 
-    # Botni background da ishga tushirish (faqat BOT_TOKEN bo'lsa)
-    bot_token = os.getenv('BOT_TOKEN', '')
-    if bot_token and bot_token != 'your_bot_token_here':
-        bot_thread = threading.Thread(target=run_bot, daemon=True)
-        bot_thread.start()
-        logger.info("Bot thread ishga tushirildi")
-    else:
-        logger.warning("BOT_TOKEN topilmadi — bot ishlamaydi! .env ga qo'shing.")
+# 2. Botni background da ishga tushirish
+bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '')
+if bot_token and bot_token != 'your_bot_token_here':
+    # Bot thread-ini aynan shu yerda boshlaymiz
+    bot_thread = threading.Thread(target=run_bot, daemon=True)
+    bot_thread.start()
+    logger.info("Bot thread modul darajasida ishga tushirildi")
+else:
+    logger.warning("BOT_TOKEN topilmadi — bot ishlamaydi!")
 
-    # Flask server
+@app.route('/')
+def index():
+    return "Bot is running..."
+
+# --- LOCAL ISHLATISH UCHUN ---
+if __name__ == '__main__':
+    # Bu qism faqat 'python bot.py' degandagina ishlaydi
     port = int(os.getenv('PORT', 5000))
     logger.info(f"Flask server port {port} da ishga tushmoqda...")
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
